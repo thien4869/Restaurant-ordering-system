@@ -1,0 +1,16 @@
+digraph DFD0 {
+ graph [rankdir=LR, splines=polyline, overlap=false, nodesep=0.85, ranksep=1.35, pad=0.35, bgcolor="white", labelloc="t", label="DFD LEVEL 0 – RESTAURANT ORDERING MANAGEMENT SYSTEM", fontsize=23, fontname="DejaVu Sans", fontcolor="#17365D"];
+ node [fontname="DejaVu Sans", fontsize=13, color="#1F4E79", penwidth=1.8, style="filled", fillcolor="#EAF2F8", fontcolor="#17365D", margin="0.22,0.16"];
+ edge [fontname="DejaVu Sans", fontsize=10, color="#52677F", fontcolor="#263746", penwidth=1.25, arrowsize=0.8];
+ Guest [shape=box, label="GUEST"];
+ Customer [shape=box, label="CUSTOMER"];
+ Admin [shape=box, label="ADMIN"];
+ System [shape=ellipse, width=3.4, height=2.1, fillcolor="#DCEBFA", penwidth=2.5, label="0.0\nRESTAURANT ORDERING\nMANAGEMENT SYSTEM", fontsize=17];
+ {rank=same; Guest; Customer;}
+ Guest -> System [label="Menu browse / search request\nCart request\nRegister / login / reset password request"];
+ System -> Guest [label="Menu list / dish details\nCart summary\nAccount result", constraint=false];
+ Customer -> System [label="Order / checkout request\nView history / cancel request\nProfile update request"];
+ System -> Customer [label="Order confirmation\nOrder history / details / status\nCancellation result\nProfile update result", constraint=false];
+ System -> Admin [label="Menu update result\nOrder list / details\nStatus update result"];
+ Admin -> System [label="Menu maintenance request\nOrder search / management request\nStatus update request", constraint=false];
+}
