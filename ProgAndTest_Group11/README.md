@@ -30,7 +30,7 @@ File Docker là bản mẫu cho PHP + MySQL. Nếu nhóm đổi ngôn ngữ thì
 
 ## Sơ đồ
 
-### 1. Use-case theo người phụ trách
+### 1. Use-case 
 
 ```mermaid
 flowchart LR
@@ -262,8 +262,7 @@ ProgAndTest_Group11/
 ├── database/                # schema.sql, seed.sql
 ├── docker/                  # Dockerfile
 ├── docker-compose.yml
-├── docs/                    # đặc tả, quy ước, bảng phân công
-├── evidence/                # bằng chứng dùng công cụ và phân công
+├── docs/                    # đặc tả, quy ước, bảng phân công              
 │   ├── commits/
 │   ├── tool-usage/
 │   └── task-assignment/
