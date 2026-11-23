@@ -4,6 +4,8 @@
 #include <sstream>
 #include "services/AccountService.h"
 #include "services/OrderService.h"
+#include "services/UserAdminService.h"
+
 using namespace std;
 
 void showOrderHistory(OrderService &, const string &);
@@ -110,25 +112,54 @@ void customerMenu(
         }
     }
 }
-void adminMenu(OrderService &orderService, Auth &auth)
+
+void adminMenu(OrderService &orderService,
+               UserAdminService &userAdminService,
+               Auth &auth)
 {
     if (!auth.canAccessAdmin())
     {
         cout << "Access denied!\n";
         return;
     }
-    while (auth.isLoggedIn())
+
+    auto printUsers = [](const vector<User> &users)
+    {
+        if (users.empty())
+        {
+            cout << "No users found.\n";
+            return;
+        }
+
+        for (const User &user : users)
+        {
+            cout << "Name: " << user.name << "\n";
+            cout << "Email: " << user.email << "\n";
+            cout << "Phone: " << user.phone << "\n";
+            cout << "Role: " << user.role << "\n";
+            cout << "-------------------------\n";
+        }
+    };
+
+    while (auth.isLoggedIn() && auth.canAccessAdmin())
     {
         cout << "\n============ ADMIN MENU ============\n";
         cout << "1. View admin information\n";
         cout << "2. View all orders\n";
         cout << "3. Update order status\n";
-        cout << "4. Logout\n";
+        cout << "4. View all users\n";
+        cout << "5. Search users\n";
+        cout << "6. Update user\n";
+        cout << "7. Delete user\n";
+        cout << "8. View users by page\n";
+        cout << "9. Logout\n";
         cout << "====================================\n";
         cout << "Choose: ";
+
         string choice;
         if (!getline(cin, choice))
             return;
+
         if (choice == "1")
         {
             cout << "Name: " << auth.user()->name << "\n";
@@ -141,14 +172,108 @@ void adminMenu(OrderService &orderService, Auth &auth)
         else if (choice == "3")
         {
             string number, status;
+
             cout << "Order number: ";
             getline(cin, number);
-            cout << "New status (NEW / CONFIRMED / "
-                 << "IN_TRANSIT / COMPLETED / CANCELED): ";
+
+            cout << "New status: ";
             getline(cin, status);
+
             updateAdminOrderStatus(orderService, number, status);
         }
         else if (choice == "4")
+        {
+            printUsers(userAdminService.getAllUsers(auth));
+        }
+        else if (choice == "5")
+        {
+            string keyword;
+
+            cout << "Search keyword: ";
+            getline(cin, keyword);
+
+            printUsers(userAdminService.searchUsers(auth, keyword));
+        }
+        else if (choice == "6")
+        {
+            string email, name, phone;
+
+            cout << "User email: ";
+            getline(cin, email);
+            cout << "New name: ";
+            getline(cin, name);
+            cout << "New phone: ";
+            getline(cin, phone);
+
+            if (userAdminService.updateUser(
+                    auth, email, name, phone))
+            {
+                cout << "User updated successfully!\n";
+            }
+            else
+            {
+                cout << "Failed to update user.\n";
+            }
+        }
+        else if (choice == "7")
+        {
+            string email;
+
+            cout << "Email to delete: ";
+            getline(cin, email);
+
+            if (email == auth.user()->email)
+            {
+                cout << "Cannot delete your current account.\n";
+                continue;
+            }
+
+            string confirm;
+            cout << "Confirm delete (YES): ";
+            getline(cin, confirm);
+
+            if (confirm != "YES")
+            {
+                cout << "Deletion canceled.\n";
+                continue;
+            }
+
+            if (userAdminService.deleteUser(auth, email))
+            {
+                cout << "User deleted successfully!\n";
+            }
+            else
+            {
+                cout << "Failed to delete user.\n";
+            }
+        }
+        else if (choice == "8")
+        {
+            string input;
+            int page = 0;
+
+            cout << "Page number: ";
+            getline(cin, input);
+
+            try
+            {
+                size_t pos = 0;
+                page = stoi(input, &pos);
+                if (pos != input.size() || page < 1)
+                {
+                    throw invalid_argument("Invalid page");
+                }
+            }
+            catch (const exception &)
+            {
+                cout << "Invalid page number.\n";
+                continue;
+            }
+
+            printUsers(userAdminService.getUsersByPage(
+                auth, page, 5));
+        }
+        else if (choice == "9")
         {
             auth.logout();
             cout << "Admin logged out!\n";
@@ -163,6 +288,7 @@ int main()
 {
     UserRepository userRepo;
     AccountService accountService(userRepo);
+    UserAdminService userAdminService(userRepo);
     OrderRepository orderRepo;
     OrderService orderService(orderRepo);
     Auth auth;
@@ -224,7 +350,7 @@ int main()
             cout << "Login successful!\n";
             if (auth.canAccessAdmin())
             {
-                adminMenu(orderService, auth);
+                adminMenu(orderService, userAdminService, auth);
             }
             else
             {
