@@ -1,162 +1,103 @@
-# Quy ước chung – Group 11
+# Quy ước chung – Group 11 (C++ / OOP)
 
-Bám theo Use-case Diagram, Class Diagram, ERD, DFD và kiến trúc 3 lớp trong tài liệu đặc tả. Mọi thành viên đọc file này trước khi code.
+*Cập nhật 23/11/2026. Áp dụng cho hướng triển khai C++ mới; giữ nguyên tài liệu đặc tả, database và lịch sử nộp bài. Những quyết định chưa thống nhất được đánh dấu **CẦN CHỐT**.*
 
-## A. Các điểm lệch giữa các sơ đồ – cần chốt ngay
+## A. Mục tiêu, ranh giới và các quyết định cần chốt
 
-Đây là những chỗ các sơ đồ hoặc đặc tả không khớp nhau. Nếu không chốt, mỗi người sẽ code một kiểu và lúc ghép sẽ lỗi. Cột "Đề xuất" là mặc định, cả nhóm đồng ý thì dùng luôn.
+- Chương trình: **Restaurant Order Management System**, ngôn ngữ C++17 (đề xuất), sử dụng OOP và tách ba lớp.
+- **CẦN CHỐT:** GUI nào (Qt, thư viện khác, hoặc xác nhận giáo viên chấp nhận console prototype); Stage 2 yêu cầu GUI design.
+- **CẦN CHỐT:** cách lưu dữ liệu (MySQL + C++ connector, SQLite, file) và mô hình triển khai Docker. `docker-compose.yml` hiện tại dành cho PHP/MySQL, **chưa chạy C++**.
+- Các ZIP đã nộp được lưu ở `submissions/` để bảo toàn bản gốc. Không biên dịch/gộp bừa tất cả mã C++ trong ZIP thành một chương trình.
+- Một executable chỉ có **một `main()`**. Các `main.cpp` demo của thành viên cần tách/chuyển đổi khi tích hợp.
+- Chức năng Account TV3 phải tích hợp với cùng nguồn dữ liệu User của TV5; Orders TV4/Checkout TV2 dùng chung các kiểu Order, Product, User.
 
-| # | Vấn đề | Đề xuất |
-|---|---|---|
-| 1 | Đặc tả yêu cầu sắp xếp theo **giảm giá** và tính giá sau giảm, nhưng bảng `PRODUCT` trong ERD và Class Diagram **không có cột discount** | Thêm cột `discount` (số nguyên 0–100, mặc định 0) vào `products` |
-| 2 | Tên trạng thái đơn khác nhau: đặc tả ghi New / Confirmed / In Transit / Completed / Cancelled, ảnh giao diện Admin ghi Pending / Preparing / Completed | Dùng bộ của đặc tả (mục B.3). Màn hình Admin hiển thị đúng bộ này |
-| 3 | Đặc tả viết "Cancelled" ở chỗ này, "Canceled" ở chỗ khác | Thống nhất `CANCELED` trong CSDL và code |
-| 4 | DFD có kho dữ liệu **D6 Payments** và kiến trúc có **Payment Repository**, nhưng ERD **không có bảng payment** (chỉ có `payment_type` trong ORDER). Đặc tả lại yêu cầu "trạng thái thanh toán phải phản ánh kết quả thật" | Không tạo bảng mới. Thêm cột `payment_status` (`PENDING`, `PAID`, `FAILED`) vào `orders`. Phần ghi thanh toán đặt trong `OrderRepository` |
-| 5 | ERD có `PROVINCE/DISTRICT/WARD/SHIPPING` và ORDER có `ward_id`, `shipping_id`, nhưng đặc tả use-case không mô tả chọn tỉnh/huyện/xã | Giữ nguyên ERD. TV2 làm form chọn đơn giản ở Checkout, TV5 nhập sẵn vài dòng dữ liệu mẫu (1–2 tỉnh, vài quận, vài phường, 2 kiểu giao hàng) |
-| 6 | Use-case Diagram cho **Guest** dùng Manage Cart, nhưng ERD gắn CART với `user_email` | Khách chưa đăng nhập: giỏ lưu trong session. Khi đăng nhập thì gộp vào giỏ trong CSDL. Checkout bắt buộc đăng nhập |
-| 7 | Đặc tả và giao diện gọi là **Dish**, sơ đồ lớp và ERD gọi là **Product** | Code và CSDL dùng `product`. Giao diện hiển thị chữ "Dish" như đặc tả |
-| 8 | Ảnh dashboard Admin có thêm Tables, Reports, Settings, Dashboard thống kê | **Không làm**. Chỉ làm Menu, Orders, Customers (Users) theo use-case |
+## B. Hợp đồng dữ liệu dựa trên đặc tả hiện có
 
-## B. Cơ sở dữ liệu
+Giữ tên nghiệp vụ và quan hệ trong ERD/Use-case. Nếu dùng SQL, tên bảng: `users`, `administrators`, `categories`, `products`, `carts`, `cart_items`, `orders`, `order_details`, `shippings`, `provinces`, `districts`, `wards`. Khóa chính `users.email`, `products.code`, `orders.order_number`.
 
-### B.1 Tên bảng
-
-Dùng chữ thường, snake_case, số nhiều. Không đặt `order`, `user` vì trùng từ khóa SQL.
-
-| ERD | Tên bảng | Lớp trong Class Diagram |
-|---|---|---|
-| USER | `users` | User |
-| ADMINISTRATOR | `administrators` | Administrator |
-| CATEGORY | `categories` | Category |
-| PRODUCT | `products` | Product |
-| CART | `carts` | Cart |
-| CART_ITEM | `cart_items` | Cart (qty) |
-| ORDER | `orders` | Order |
-| ORDER_DETAIL | `order_details` | OrderDetail |
-| SHIPPING | `shippings` | Shipping |
-| PROVINCE / DISTRICT / WARD | `provinces`, `districts`, `wards` | Province, District, Ward |
-
-### B.2 Tên cột
-
-Giữ đúng tên trong ERD, viết snake_case, chỉ đổi những chỗ trùng từ khóa SQL:
-
-| ERD | Dùng |
+| Nội dung | Quy tắc thống nhất |
 |---|---|
-| `desc` | `description` |
-| `view` | `views` |
-| `qty` | giữ `qty` |
-| `price` (OrderDetail) | giữ `price` (giá lúc đặt, không đổi khi món đổi giá) |
+| Product | `discount` số nguyên 0–100, `AVAILABLE` / `SOLD_OUT` / `DISCONTINUED` |
+| Đơn hàng | `NEW`, `CONFIRMED`, `IN_TRANSIT`, `COMPLETED`, `CANCELED` |
+| Thanh toán | `payment_type`: `CASH` / `ONLINE`; `payment_status`: `PENDING` / `PAID` / `FAILED` |
+| Vai trò | `GUEST`, `CUSTOMER`, `ADMIN` |
+| Mã đơn | `ORD-YYYYMMDD-NNNN` (theo đặc tả hiện tại) |
+| Giá | VND nguyên; tính tiền bằng kiểu số nguyên 64-bit hoặc decimal, **không dùng floating-point** cho tiền |
 
-Các khóa chính, khóa ngoại giữ như ERD: `users.email`, `products.code`, `orders.order_number`, `order_details(order_number, product_code)`, `cart_items(cart_id, product_code)`.
+- Giữ tên `Product` trong code dù giao diện có thể gọi là “Dish”. Tiền sau giảm và tổng checkout cần tính ở lớp Service, không tin dữ liệu UI.
+- Hủy đơn chỉ khi `NEW`; món đã có trong đơn chuyển `DISCONTINUED` thay vì xóa vật lý.
+- Không lưu mật khẩu dạng plaintext hoặc dùng `std::hash` để bảo vệ mật khẩu. Cần thư viện password hashing phù hợp và quy trình xác thực/reset an toàn; module C++ demo hiện chưa đáp ứng.
+- Nếu dùng SQL, **chỉ Repository truy vấn DB** và phải dùng parameter binding/prepared statement. Nếu dùng file/in-memory, interface Repository vẫn cần tách khỏi Service.
+- Giữ nguyên `database/schema.sql` và `seed.sql` như tài liệu lịch sử đến khi quyết định persistence được xác nhận.
 
-Bổ sung theo mục A: `products.discount`, `orders.payment_status`.
+## C. Kiến trúc và cấu trúc C++
 
-### B.3 Giá trị cố định
-
-| Cột | Giá trị lưu trong CSDL | Hiển thị |
-|---|---|---|
-| `products.status` | `AVAILABLE`, `SOLD_OUT`, `DISCONTINUED` | In stock, Sold Out, (ẩn khỏi menu) |
-| `orders.status` | `NEW`, `CONFIRMED`, `IN_TRANSIT`, `COMPLETED`, `CANCELED` | New, Confirmed, In Transit, Completed, Canceled |
-| `orders.payment_type` | `CASH`, `ONLINE` | Cash, Online |
-| `orders.payment_status` | `PENDING`, `PAID`, `FAILED` | Pending, Paid, Failed |
-| `users` / session | vai trò `GUEST`, `CUSTOMER`, `ADMIN` | |
-
-### B.4 Quy tắc dữ liệu
-
-- Mật khẩu **luôn lưu dạng băm** (hash), không lưu chữ thường. Cột vẫn tên `password`.
-- Tiền VND, kiểu `DECIMAL(12,0)`. Không dùng số thực.
-- Giá sau giảm = `price × (1 − discount/100)`. **Chỉ viết một hàm duy nhất** cho việc này (TV2 phụ trách), mọi nơi gọi lại hàm đó.
-- `order_number` theo dạng `ORD-YYYYMMDD-NNNN`, ví dụ `ORD-20261121-0001`.
-- Xóa món đã có trong đơn thì chuyển sang `DISCONTINUED`, không xóa dòng (theo use-case Manage Dish).
-- Tổng tiền đơn **tính lại ở server** khi checkout, không tin số tiền từ trình duyệt.
-- Câu SQL chỉ nằm trong lớp Repository, dùng câu lệnh tham số hóa (chống SQL Injection).
-
-## C. Cấu trúc mã nguồn (theo kiến trúc 3 lớp)
-
-Mỗi lớp chỉ gọi lớp ngay bên dưới. **Giao diện không được gọi thẳng Repository.**
-
-| Lớp | Gồm | Ghi chú |
-|---|---|---|
-| 1. Presentation | Customer Web (Menu, Cart, Order History, Details, Cancel, Place Order); Admin Dashboard (Order list, search, filter, details, update status) | Chỉ hiển thị và nhận dữ liệu nhập, không chứa nghiệp vụ |
-| 2. Business Logic | `AccountService` (login, profile, permissions); `MenuCartService` (browse, manage cart); `OrderService` (place, view, cancel, manage) | Kiểm tra quy tắc nghiệp vụ ở đây |
-| 3. Data Access | `UserRepository`, `MenuCartRepository`, `OrderRepository` (kèm thanh toán) | Chỉ ở đây mới có SQL |
-
-Thư mục gợi ý, đặt tên theo ngôn ngữ nhóm chọn:
-
-```
+```text
 src/
-├── presentation/   # trang, controller
-│   ├── customer/
-│   └── admin/
-├── services/
-├── repositories/
-├── models/         # User, Product, Category, Cart, Order, OrderDetail, Shipping, Administrator
-└── common/         # hàm dùng chung: tính giá sau giảm, kiểm tra dữ liệu, session
+├── main.cpp
+├── models/              # User.h, Product.h, Order.h, ...
+├── repositories/        # UserRepository.h/.cpp, OrderRepository.h/.cpp, ...
+├── services/            # AccountService.h/.cpp, OrderService.h/.cpp, ...
+├── presentation/        # giao diện chung, Customer/Admin menu hoặc GUI
+└── common/              # validators, config, helpers chia sẻ
+tests/
+├── unit/                # Google Test hoặc bộ test C++ phù hợp
+├── integration/
+└── testcases/           # Excel
+submissions/             # lưu ZIP gốc chưa tích hợp
+evidence/                # kết quả test, ảnh, issue/PR
 ```
 
-Phân công thư mục: mỗi người chỉ sửa file của module mình. File dùng chung (`common/`, layout, `models/`) muốn sửa thì báo cả nhóm và tạo Pull Request riêng.
+- **Presentation → Service → Repository**. UI không gọi thẳng Repository; Repository không gọi UI.
+- `models/`: khai báo dữ liệu dùng chung, không tái định nghĩa `User`/`Order` khác nhau ở các module.
+- Dùng `.h` (hoặc `.hpp` nếu chốt chung) cho interface, `.cpp` cho implementation; include guard/`#pragma once`.
+- Tên class `PascalCase` (`User`, `OrderService`); hàm/biến `camelCase` (`getUserByEmail`, `cancelOrder`); file trùng tên class hoặc thống nhất theo module. `const` đúng chỗ, ưu tiên `std::vector`, `std::string`, smart pointer và RAII.
+- Dữ liệu nhạy cảm không log ra console, không commit secret/executable/build output.
+- Thư viện build chính được đề xuất là CMake; chưa coi là hoàn tất cho đến khi có `CMakeLists.txt` build được.
 
-### Tên lớp và hàm
+## D. Giao diện và tính năng
 
-- Tên lớp: PascalCase, đúng tên trong Class Diagram (`User`, `Product`, `OrderDetail`...).
-- Tên hàm: camelCase, đúng tên trong Class Diagram: `login`, `register`, `updateProfile`, `resetPassword`, `addToCart`, `updateCart`, `removeFromCart`, `checkout`, `cancelOrder`, `viewOrderHistory`, `getDetail`, `manageDishes`, `manageUsers`, `manageOrders`.
-- Biến, tên file: theo thông lệ của ngôn ngữ đã chọn (Python: snake_case; Java: camelCase; PHP: camelCase cho hàm).
+- Text của giao diện và lỗi theo **tiếng Anh** như đặc tả để đối chiếu Expected Result.
+- Các danh sách/tìm kiếm theo quy ước **20 dòng/trang**.
+- Phạm vi admin: quản lý Menu, Orders và Users; không tự thêm báo cáo/dashboard ngoài use-case.
+- Console app trong ZIP có thể dùng kiểm chứng nghiệp vụ, **không chứng minh đã hoàn thành GUI**. Trước khi nộp, phải xác nhận yêu cầu Stage 2 và thể hiện thiết kế GUI.
 
-## D. Giao diện và thông báo
+## E. Phân công, nhánh Git và nộp file
 
-- Chữ trên giao diện và thông báo lỗi dùng **tiếng Anh đúng như trong đặc tả**, ví dụ `Invalid username or password.`, `No matching dish found`, `There are no dishes in this category yet`, `You have no orders yet`. Làm vậy để "Expected Result" trong test case khớp với phần mềm.
-- Mỗi trang phân trang 20 dòng (menu, kết quả tìm, danh sách user, danh sách món admin).
-- Màn hình theo đúng Figure 3–18 trong đặc tả. Không thêm trang ngoài phạm vi.
-
-## E. Git
-
-- **Không push thẳng vào `main`.** Mỗi người một nhánh: `feature-menu` (TV1), `feature-cart-checkout` (TV2), `feature-account` (TV3), `feature-orders` (TV4), `feature-users` (TV5).
-- Xong một chức năng thì tạo Pull Request vào `main`, nhờ một bạn khác xem qua rồi mới gộp. TV5 gộp chốt.
-- Commit nhỏ, thường xuyên (đề yêu cầu có bằng chứng dùng công cụ). Cú pháp:
-
-  `[TV3] feat: thêm đăng nhập` · `[TV2] fix: sửa tính tổng giỏ` · `[TV1] test: thêm unit test tìm kiếm`
-
-  Loại: `feat`, `fix`, `test`, `docs`, `refactor`.
-- Trước khi bắt đầu làm: `git pull origin main`. Trước khi tạo PR: kéo `main` về nhánh mình và chạy thử.
-- Không commit mật khẩu, file cấu hình riêng của máy, thư mục thư viện tải về.
-
-## F. Kiểm thử
-
-### Mã test case
-
-Dùng cột đúng như file mẫu: Test Case ID, Function, Test Steps, Input Data, Expected Result. Để không trùng ID giữa 5 người, ID có tiền tố theo module:
-
-| Module | Tiền tố | Ví dụ |
+| TV | Module | Nhánh đề xuất |
 |---|---|---|
-| Thực đơn (TV1) | `MENU` | `TC-MENU-01` |
-| Giỏ (TV2) | `CART` | `TC-CART-01` |
-| Đặt món (TV2) | `CHK` | `TC-CHK-01` |
-| Tài khoản (TV3) | `ACC` | `TC-ACC-01` |
-| Đơn của khách (TV4) | `ORD` | `TC-ORD-01` |
-| Quản lý đơn của admin (TV4) | `ADM` | `TC-ADM-01` |
-| Quản lý người dùng (TV5) | `USR` | `TC-USR-01` |
+| TV1 | Menu | `feature-menu` |
+| TV2 | Cart/Checkout | `feature-cart-checkout` |
+| TV3 | Account | `feature-account` |
+| TV4 | Orders | `feature-orders` |
+| TV5 | Manage Users & Integration | `feature-users` |
 
-- Cột **Function** ghi đúng tên use-case trong bảng 1.2 của đặc tả (`Login`, `Register`, `Manage Cart`, `Cancel Order`...).
-- Mỗi use-case có ít nhất: 1 trường hợp thành công, 1–2 trường hợp lỗi theo "Alternative flows" của đặc tả, 1 trường hợp biên (số lượng 0, giảm giá 101%, giá âm, từ khóa rỗng, hủy đơn đã Confirmed).
-- Mỗi người điền file riêng `TestCases_<Module>.xlsx`, TV5 gộp thành một file nộp.
+- Không push trực tiếp `main`; nộp từng module qua Pull Request, review rồi merge.
+- Commit `[TV3] feat: implement login`, `[TV5] test: add users tests`. Loại: `feat`, `fix`, `test`, `docs`, `refactor`.
+- Các ZIP gốc không đặt trong `tests/`; lưu `submissions/tvN/` để truy xuất. **Mã đã tích hợp** đặt trong `src/`, unit test thật trong `tests/unit/`, Excel trong `tests/testcases/`.
+- File cùng nội dung hoặc cùng tên cần so sánh trước khi xóa. Không ghi đè workbook đã nộp; giữ cả hai phiên bản đến khi TV5 xác nhận.
+- Cần PR riêng trước khi sửa code dùng chung ở `models/`, `common/`, build system.
 
-### Unit test
+## F. Testing và quản lý lỗi
 
-- Đặt trong `tests/unit/`, tên file theo module: `test_menu`, `test_cart`, `test_checkout`, `test_account`, `test_orders`, `test_admin_orders`, `test_users` (viết theo thông lệ của công cụ test nhóm chọn).
-- Ưu tiên test các hàm nghiệp vụ trong Service, và hàm tính giá sau giảm.
+| Module | Test Case ID |
+|---|---|
+| Menu (TV1) | `TC-MENU-01` |
+| Cart (TV2) | `TC-CART-01` |
+| Checkout (TV2) | `TC-CHK-01` |
+| Account (TV3) | `TC-ACC-01` |
+| Customer Orders (TV4) | `TC-ORD-01` |
+| Admin Orders (TV4) | `TC-ADM-01` |
+| Manage Users (TV5) | `TC-USR-01` |
 
-### Báo lỗi
+- Excel tối thiểu có **Test Case ID, Function, Test Steps, Input Data, Expected Result**; khi chạy bổ sung **Actual Result, Status, Evidence**.
+- Mỗi use-case: ca thành công, ca lỗi, ca biên. Không đánh PASS nếu chưa chạy với code thực tế.
+- Unit test ưu tiên **Google Test (C++)** cho lớp Service (mock/fake repository). Test chạm DB thật được ghi rõ là integration test.
+- Mỗi lỗi ghi GitHub Issue: `[BUG][Module] mô tả`, bước tái hiện, expected, actual, test ID, bằng chứng và người phụ trách.
+- Chỉ coi module hoàn thành khi: code build/run chung; có test chạy được; Excel ghi actual/status; lỗi nghiêm trọng được xử lý; có minh chứng trong `evidence/`.
 
-Mỗi lỗi là một Issue trên GitHub:
+## G. Ghi chú chuyển đổi từ PHP
 
-- Tiêu đề: `[BUG][Module] mô tả ngắn`, ví dụ `[BUG][Cart] số lượng 0 vẫn được chấp nhận`.
-- Nội dung: các bước tái hiện, kết quả mong đợi, kết quả thực tế, mã test case liên quan (nếu có).
-- Nhãn: `bug`, kèm người sửa. Sửa xong thì đóng Issue và ghi số Issue vào commit.
-
-## G. Một chức năng coi là xong khi
-
-1. Code chạy đúng theo use-case, đã gộp vào `main`.
-2. Có unit test và đã chạy qua.
-3. Có test case trong file Excel, đã chạy thử bằng tay và ghi kết quả.
-4. Lỗi tìm được đã ghi Issue, lỗi nặng đã sửa.
-5. Có ảnh chụp bằng chứng (commit, Issue) trong `evidence/`.
+- Các file PHP/Apache/Docker hiện có là phiên bản thử nghiệm trước khi chốt C++; không dùng chúng làm bằng chứng C++ chạy được.
+- **Không xóa** đặc tả/sơ đồ/bảng phân công hoặc dữ liệu thành viên đã nộp. Mọi chuyển đổi cần giữ lịch sử Git và được review.
+- Kiểm tra các bài test/demo C++ hiện có, chuyển từng module sang interface dùng chung rồi mới xóa code trùng.
