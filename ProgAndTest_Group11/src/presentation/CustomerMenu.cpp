@@ -21,3 +21,33 @@ void showOrderHistory(OrderService& orderService,
     }
 }
 
+void showOrderDetails(OrderService& orderService,
+                      const std::string& orderNumber,
+                      const std::string& customerEmail) {
+    Order* order = orderService.getOrderDetails(
+        orderNumber, customerEmail
+    );
+
+    std::cout << "\n=== ORDER DETAILS ===\n";
+
+    if (order == nullptr) {
+        std::cout << "Order not found or access denied.\n";
+        return;
+    }
+
+    std::cout << "Order Number: "
+              << order->getOrderNumber() << "\n";
+
+    std::cout << "Status: "
+              << order->getStatus() << "\n";
+
+    std::cout << "Payment Type: "
+              << order->getPaymentType() << "\n";
+
+    std::cout << "Payment Status: "
+              << order->getPaymentStatus() << "\n";
+
+    std::cout << "Total Amount: "
+              << order->getTotalAmount() << " VND\n";
+}
+
