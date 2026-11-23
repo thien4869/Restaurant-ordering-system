@@ -47,6 +47,24 @@ void showOrderDetails(OrderService& orderService,
     std::cout << "Payment Status: "
               << order->getPaymentStatus() << "\n";
 
+void cancelCustomerOrder(OrderService& orderService,
+                         const std::string& orderNumber,
+                         const std::string& customerEmail) {
+    bool success = orderService.cancelOrder(
+        orderNumber, customerEmail
+    );
+
+    std::cout << "\n=== CANCEL ORDER ===\n";
+
+    if (success) {
+        std::cout << "Order canceled successfully.\n";
+    } else {
+        std::cout << "Cannot cancel order.\n";
+        std::cout << "Order must belong to you "
+                  << "and have status NEW.\n";
+    }
+}
+
     std::cout << "Total Amount: "
               << order->getTotalAmount() << " VND\n";
 }
