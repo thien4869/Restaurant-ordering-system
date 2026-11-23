@@ -45,27 +45,54 @@ add_test(NAME orders_checks COMMAND tv3_orders_tests)
 
 message(STATUS "Independent TV3 C++ prototypes configured; no combined app yet")
 
+# ==========================================
 # TV4 - Orders Module
+# ==========================================
+
 add_library(tv4_orders_lib STATIC
     src/repositories/OrderRepository.cpp
     src/services/OrderService.cpp
 )
-
 target_include_directories(tv4_orders_lib PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
-
-# TV4 - Orders Unit Tests
 add_executable(tv4_orders_tests
     tests/test_orders.cpp
 )
-
 target_link_libraries(tv4_orders_tests PRIVATE
     tv4_orders_lib
 )
-
 add_test(
     NAME tv4_orders_checks
     COMMAND tv4_orders_tests
 )
+
+#TV5
+add_library(tv5_users_lib STATIC
+    src/repositories/UserRepository.cpp
+    src/services/UserAdminService.cpp
+)
+target_include_directories(tv5_users_lib PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+set(TV5_TESTS
+    test_users_list
+    test_users_update
+    test_users_delete
+    test_users_search
+    test_users_pagination
+    test_users_admin
+)
+foreach(TEST_NAME IN LISTS TV5_TESTS)
+    add_executable(${TEST_NAME}
+        "tests/unit/${TEST_NAME}.cpp"
+    )
+    target_link_libraries(${TEST_NAME} PRIVATE
+        tv5_users_lib
+    )
+    add_test(
+        NAME ${TEST_NAME}
+        COMMAND ${TEST_NAME}
+    )
+endforeach()
 
