@@ -1,19 +1,19 @@
-
 #include <iostream>
 #include "../services/OrderService.h"
 
-void showAllOrders(OrderService& orderService) {
+void showAllOrders(OrderService &orderService)
+{
     std::vector<Order> orders =
         orderService.getAllOrdersForAdmin();
-
     std::cout << "\n=== ALL ORDERS ===\n";
 
-    if (orders.empty()) {
+    if (orders.empty())
+    {
         std::cout << "No orders found.\n";
         return;
     }
-
-    for (const Order& order : orders) {
+    for (const Order &order : orders)
+    {
         std::cout << "Order Number: "
                   << order.getOrderNumber() << "\n";
 
@@ -25,26 +25,26 @@ void showAllOrders(OrderService& orderService) {
 
         std::cout << "Total Amount: "
                   << order.getTotalAmount() << " VND\n";
-        
-void updateAdminOrderStatus(OrderService& orderService,
-                            const std::string& orderNumber,
-                            const std::string& newStatus) {
-    std::cout << "\n=== UPDATE ORDER STATUS ===\n";
-
-    bool success = orderService.updateOrderStatus(
-        orderNumber, newStatus
-    );
-
-    if (success) {
-        std::cout << "Order status updated successfully.\n";
-    } else {
-        std::cout << "Failed to update order status.\n";
-        std::cout << "Invalid order number or status.\n";
     }
 }
+        void updateAdminOrderStatus(OrderService & orderService,
+                                    const std::string &orderNumber,
+                                    const std::string &newStatus)
+        {
+            std::cout << "\n=== UPDATE ORDER STATUS ===\n";
 
+            bool success = orderService.updateOrderStatus(
+                orderNumber, newStatus);
 
-        std::cout << "--------------------\n";
-    }
-}
+            if (success)
+            {
+                std::cout << "Order status updated successfully.\n";
+            }
+            else
+            {
+                std::cout << "Failed to update order status.\n";
+                std::cout << "Invalid order number or status.\n";
+            }
+        }
+    
 
