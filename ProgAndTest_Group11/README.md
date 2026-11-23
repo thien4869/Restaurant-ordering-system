@@ -19,7 +19,7 @@ Xem [quy ước nhóm](docs/CONVENTIONS.md) và tài liệu đặc tả trong `d
 ## Công nghệ / thiết kế
 
 - **C++17 + OOP** (chuẩn đề xuất cần cả nhóm thống nhất); phân tách Presentation → Service → Repository.
-- **Build:** dự kiến dùng CMake. Chỉ chạy lệnh CMake khi đã có `CMakeLists.txt` tích hợp thực tế.
+- **Build:** có `CMakeLists.txt` dùng để biên dịch/kiểm thử **hai bản demo TV3 riêng biệt** từ ZIP gốc; chưa có executable tích hợp cả nhóm.
 - **Testing:** test case Excel; ưu tiên Google Test cho unit test, cộng với integration test và bằng chứng chạy thực tế.
 - **GUI:** theo yêu cầu Stage 2 của giáo viên; bản chạy console trong các ZIP hiện là prototype, **chưa thay thế thiết kế GUI**. Cần chốt thư viện GUI hoặc mức độ chấp nhận của giảng viên.
 - **Data persistence:** cần cả nhóm chốt MySQL/file trước khi tích hợp. SQL `database/schema.sql` và `seed.sql` là tài liệu/bản mẫu từ nền tảng PHP cũ; **chưa chứng minh kết nối C++ ↔ MySQL**.
@@ -32,7 +32,8 @@ ProgAndTest_Group11/
 ├── README.md
 ├── docs/
 │   └── CONVENTIONS.md
-├── src/                   # C++ tích hợp: CHƯA ĐƯỢC TẠO/HOÀN THÀNH trên main
+├── CMakeLists.txt         # build/test 2 demo TV3 độc lập
+├── src/                   # C++ tích hợp: CHƯA ĐƯỢC TẠO/HOÀN THÀNH
 │   ├── main.cpp           # một entry point duy nhất
 │   ├── models/
 │   ├── repositories/
@@ -63,9 +64,7 @@ ProgAndTest_Group11/
 
 ## Chạy / build
 
-**Hiện chưa có lệnh build chung đáng tin cậy**, vì code C++ đang ở các submission độc lập, chưa có `src/main.cpp` và `CMakeLists.txt` thống nhất. Không thực hiện `docker compose up` với kỳ vọng chạy ứng dụng C++.
-
-Sau khi tích hợp, cập nhật mục này bằng lệnh thực tế đã kiểm chứng (ví dụ CMake):
+**Đã kiểm tra CMake cho hai demo TV3 độc lập** (Account và Orders); chưa có chương trình chung của 5 thành viên. Cài CMake >= 3.18 và trình biên dịch C++17, rồi chạy trong `ProgAndTest_Group11`:
 
 ```bash
 cmake -S . -B build
@@ -73,7 +72,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Các lệnh trên **chỉ là hướng dẫn dự kiến**, chưa được kiểm chứng với repository này.
+Các lệnh trên đã được kiểm thử với hai ZIP TV3 trong môi trường GNU C++/CMake, cho **2/2 bài test dạng executable PASS**. Chạy với cấu hình Debug vì các test dùng `assert`. Chưa kiểm thử trên Windows hoặc với module khác. Chi tiết: [`docs/CPP_INTEGRATION_STATUS.md`](docs/CPP_INTEGRATION_STATUS.md).
 
 ## Quy trình tích hợp / nộp bài
 
