@@ -5,7 +5,7 @@
 #include "services/AccountService.h"
 #include "services/OrderService.h"
 #include "services/UserAdminService.h"
-
+#include "integration/Tv1MenuBridge.h"
 using namespace std;
 
 void showOrderHistory(OrderService &, const string &);
@@ -42,7 +42,8 @@ void customerMenu(
         cout << "4. View order details\n";
         cout << "5. Cancel order\n";
         cout << "6. Create demo order (testing)\n";
-        cout << "7. Logout\n";
+        cout << "7. View restaurant menu\n";
+        cout << "8. Logout\n";
         cout << "===================================\n";
         cout << "Choose: ";
         string choice;
@@ -103,6 +104,10 @@ void customerMenu(
         }
         else if (choice == "7")
         {
+            openTv1CustomerMenu();
+        }
+        else if (choice == "8")
+        {
             auth.logout();
             cout << "Logged out successfully!\n";
         }
@@ -152,7 +157,8 @@ void adminMenu(OrderService &orderService,
         cout << "6. Update user\n";
         cout << "7. Delete user\n";
         cout << "8. View users by page\n";
-        cout << "9. Logout\n";
+        cout << "9. Manage dishes\n";
+        cout << "0. Logout\n";
         cout << "====================================\n";
         cout << "Choose: ";
 
@@ -274,6 +280,10 @@ void adminMenu(OrderService &orderService,
                 auth, page, 5));
         }
         else if (choice == "9")
+        {
+            openTv1AdminMenu(auth);
+        }
+        else if (choice == "0")
         {
             auth.logout();
             cout << "Admin logged out!\n";
