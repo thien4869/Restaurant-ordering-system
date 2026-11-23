@@ -1,270 +1,85 @@
 # Restaurant Order Management System – Group 11
 
-Hệ thống đặt món cho nhà hàng: khách xem/tìm thực đơn, thêm món vào giỏ, đặt món, theo dõi đơn; admin quản lý món, người dùng và đơn hàng.
+Đồ án nhóm: phân tích, thiết kế, cài đặt và kiểm thử hệ thống quản lý đặt món nhà hàng.
 
-Công nghệ theo đặc tả: HTML, CSS, JS, PHP, MySQL. Đóng gói bằng Docker.
+> **Hướng triển khai mới (23/11/2026): C++ hướng đối tượng (OOP)**. Tài liệu này mô tả **cấu trúc mục tiêu**, không khẳng định rằng tất cả module đã tích hợp/chạy được. Mã nguồn C++ của các thành viên đang được rà soát; tuyệt đối không xem file ZIP trong `submissions/` là ứng dụng hoàn chỉnh.
 
-> Các sơ đồ dưới đây viết bằng Mermaid, GitHub tự hiển thị. Sơ đồ gốc (use-case, lớp, ERD, DFD, kiến trúc) nằm trong `docs/Restaurant_System_Specification_v1_2_edited.docx`.
+## Phạm vi và phân công
 
-## Thành viên và phân công
+| Thành viên | Module | Use-case chính |
+|---|---|---|
+| TV1 | Menu / Product / Category | Browse Menu, Search Dish, View Dish Details, Manage Dish |
+| TV2 | Cart & Checkout | Manage Cart, Place Order |
+| TV3 | Account | Register, Login, Update Profile, Password Recovery |
+| TV4 | Customer / Admin Orders | View Order History, View Order Details, Cancel Order, Manage Orders |
+| TV5 | Manage Users & Integration | Manage Users, tích hợp, kiểm thử tổng hợp, đóng gói |
 
-| TV | Họ tên | Module | Use-case |
-|---|---|---|---|
-| TV1 | _điền tên_ | Thực đơn | Browse Menu, Search Dish, View Dish Details, Manage Dish |
-| TV2 | _điền tên_ | Giỏ & Đặt món | Manage Cart, Checkout / Place Order |
-| TV3 | _điền tên_ | Tài khoản | Register, Login, Update Profile, Password Recovery |
-| TV4 | _điền tên_ | Đơn hàng | View Order History, View Order Details, Cancel Order, Manage Orders (admin) |
-| TV5 | _điền tên_ | Người dùng & Hạ tầng | Manage Users, repo, CSDL, Docker, đóng gói nộp bài |
+Xem [quy ước nhóm](docs/CONVENTIONS.md) và tài liệu đặc tả trong `docs/` trước khi code. C++ được lựa chọn vì phù hợp Stage 3 của hướng dẫn giáo viên và phần lớn module nhóm đã viết bằng C++.
 
-Chi tiết từng đầu việc: `docs/Phan_Cong_Nhiem_Vu_Group11.xlsx`. Quy ước chung: `docs/CONVENTIONS.md`.
+## Công nghệ / thiết kế
 
-## Cách chạy
+- **C++17 + OOP** (chuẩn đề xuất cần cả nhóm thống nhất); phân tách Presentation → Service → Repository.
+- **Build:** có `CMakeLists.txt` dùng để biên dịch/kiểm thử **hai bản demo TV3 riêng biệt** từ ZIP gốc; chưa có executable tích hợp cả nhóm.
+- **Testing:** test case Excel; ưu tiên Google Test cho unit test, cộng với integration test và bằng chứng chạy thực tế.
+- **GUI:** theo yêu cầu Stage 2 của giáo viên; bản chạy console trong các ZIP hiện là prototype, **chưa thay thế thiết kế GUI**. Cần chốt thư viện GUI hoặc mức độ chấp nhận của giảng viên.
+- **Data persistence:** cần cả nhóm chốt MySQL/file trước khi tích hợp. SQL `database/schema.sql` và `seed.sql` là tài liệu/bản mẫu từ nền tảng PHP cũ; **chưa chứng minh kết nối C++ ↔ MySQL**.
+- `docker/`, `docker-compose.yml` hiện là bản PHP/MySQL trước khi đổi hướng: **không dùng làm hướng dẫn chạy ứng dụng C++** cho đến khi thay Dockerfile.
+
+## Tổ chức repository
+
+```text
+ProgAndTest_Group11/
+├── README.md
+├── docs/
+│   └── CONVENTIONS.md
+├── CMakeLists.txt         # build/test 2 demo TV3 độc lập
+├── src/                   # C++ tích hợp: CHƯA ĐƯỢC TẠO/HOÀN THÀNH
+│   ├── main.cpp           # một entry point duy nhất
+│   ├── models/
+│   ├── repositories/
+│   ├── services/
+│   ├── presentation/
+│   └── common/
+├── tests/
+│   ├── unit/              # Google Test hoặc test harness C++ thống nhất
+│   ├── integration/
+│   ├── testcases/         # test case Excel của từng module
+│   └── Testing_Document.xlsx
+├── submissions/           # ZIP nguyên gốc thành viên đã nộp để đối chiếu
+│   └── tv3/
+├── evidence/              # ảnh/log chạy test, PR, Issues (khi có)
+├── database/              # schema/seed hiện có, chờ chốt cách lưu trữ
+├── docker/                # cấu hình cũ, cần cập nhật cho C++
+└── docker-compose.yml     # cấu hình cũ, chưa phải C++ runtime
+```
+
+**Lưu ý:** Git không lưu thư mục rỗng; các thư mục `src/` hoặc `evidence/` chỉ xuất hiện sau khi có file thực tế.
+
+## Các bài đã nhận và mức độ tích hợp
+
+- `submissions/tv3/TV3_Account_Submission.zip`: nguồn C++ mẫu về Account, có test và tài liệu; bản console, repository dữ liệu tạm, **chưa tích hợp**.
+- `submissions/tv3/TV3_CPP.zip`: nguồn C++ mẫu về Checkout/Orders; cần xác nhận lại phạm vi TV2/TV4, **chưa tích hợp**.
+- Các bảng Excel đã nhận được đưa vào `tests/testcases/`, giữ nguyên nội dung. **Không tự động xem tất cả test case là PASS.**
+- Những file Excel 1 byte từng được tạo làm placeholder trong `tests/testcases/` **không phải workbook hợp lệ**; cần thay bằng file thực khi hợp nhất. Không xóa nhầm tài liệu thật của thành viên.
+
+## Chạy / build
+
+**Đã kiểm tra CMake cho hai demo TV3 độc lập** (Account và Orders); chưa có chương trình chung của 5 thành viên. Cài CMake >= 3.18 và trình biên dịch C++17, rồi chạy trong `ProgAndTest_Group11`:
 
 ```bash
-docker compose up --build
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
 
-Mở http://localhost:8080. CSDL tự tạo từ `database/schema.sql` và `database/seed.sql` ở lần chạy đầu. Muốn tạo lại CSDL từ đầu: `docker compose down -v` rồi chạy lại lệnh trên.
+Các lệnh trên đã được kiểm thử với hai ZIP TV3 trong môi trường GNU C++/CMake, cho **2/2 bài test dạng executable PASS**. Chạy với cấu hình Debug vì các test dùng `assert`. Chưa kiểm thử trên Windows hoặc với module khác. Chi tiết: [`docs/CPP_INTEGRATION_STATUS.md`](docs/CPP_INTEGRATION_STATUS.md).
 
-File Docker là bản mẫu cho PHP + MySQL. Nếu nhóm đổi ngôn ngữ thì TV5 sửa `docker/Dockerfile`.
+## Quy trình tích hợp / nộp bài
 
-## Sơ đồ
+1. Mỗi TV chuẩn hóa nguồn C++ theo `docs/CONVENTIONS.md`, nộp qua nhánh `feature-*` và Pull Request.
+2. Đối chiếu interface chung (`User`, `Order`, `Product`), tránh nhiều `main()`, trùng class và tên hàm.
+3. Chạy build toàn hệ thống và test; lập Excel test case với Actual Result, Status, Evidence.
+4. Ghi Issue lỗi, đính kèm bằng chứng tại `evidence/`; chỉ sau khi review mới merge vào `main`.
+5. Sau khi dự án C++ chạy ổn định, cập nhật lại README và Docker, đóng gói theo yêu cầu giảng viên.
 
-### 1. Use-case 
-
-```mermaid
-flowchart LR
-    Guest([Guest])
-    Customer([Customer])
-    Admin([Admin])
-
-    subgraph TV1["TV1 – Thực đơn"]
-        UC1[Browse Menu]
-        UC2[Search Dish]
-        UC3[View Dish Details]
-        UC4[Manage Dish]
-    end
-    subgraph TV2["TV2 – Giỏ & Đặt món"]
-        UC5[Manage Cart]
-        UC6[Checkout / Place Order]
-    end
-    subgraph TV3["TV3 – Tài khoản"]
-        UC7[Register]
-        UC8[Login]
-        UC9[Update Profile]
-        UC10[Password Recovery]
-    end
-    subgraph TV4["TV4 – Đơn hàng"]
-        UC11[View Order History]
-        UC12[View Order Details]
-        UC13[Cancel Order]
-        UC15[Manage Orders]
-    end
-    subgraph TV5["TV5 – Người dùng"]
-        UC14[Manage Users]
-    end
-
-    Guest --> UC1 & UC2 & UC3 & UC5 & UC7 & UC8
-    UC8 -.->|extend| UC10
-    Customer -->|"kế thừa Guest"| Guest
-    Customer --> UC6 & UC9 & UC11 & UC12 & UC13
-    Admin --> UC4 & UC8 & UC14 & UC15
-```
-
-### 2. Kiến trúc 3 lớp
-
-```mermaid
-flowchart TB
-    Users(["Guest · Customer · Admin"])
-
-    subgraph L1["Lớp 1 – Presentation"]
-        CW["Customer Web<br/>Menu · Cart · Order History · Details · Cancel · Place Order"]
-        AD["Admin Dashboard<br/>Order List · Search · Filter · Details · Update Status"]
-    end
-    subgraph L2["Lớp 2 – Business Logic"]
-        AS["Account Service<br/>Login · Profile · Permissions"]
-        MS["Menu & Cart Service<br/>Browse Menu · Manage Cart"]
-        OS["Order Service<br/>Place · View · Cancel · Manage"]
-    end
-    subgraph L3["Lớp 3 – Data Access"]
-        UR["User Repository"]
-        MR["Menu & Cart Repository"]
-        PR["Payment Repository"]
-        ORP["Order Repository"]
-    end
-    DB[("Database<br/>Users · Menu · Cart · Orders · OrderDetails · Payment")]
-
-    Users --> CW & AD
-    CW --> AS & MS & OS
-    AD --> OS
-    AS --> UR
-    MS --> MR
-    OS --> ORP & PR
-    UR & MR & PR & ORP --> DB
-```
-
-### 3. Cơ sở dữ liệu (ERD)
-
-Theo ERD của nhóm, đổi tên bảng sang số nhiều (xem `docs/CONVENTIONS.md`), có thêm `products.discount` và `orders.payment_status`.
-
-```mermaid
-erDiagram
-    provinces ||--o{ districts : contains
-    districts ||--o{ wards : contains
-    categories ||--o{ products : "belongs to"
-    users ||--o{ orders : places
-    users ||--o| carts : owns
-    carts ||--o{ cart_items : contains
-    products ||--o{ cart_items : "in"
-    orders ||--|{ order_details : "consists of"
-    products ||--o{ order_details : "ordered in"
-    shippings ||--o{ orders : uses
-    wards ||--o{ orders : "delivered to"
-
-    provinces {
-        int province_id PK
-        string name
-    }
-    districts {
-        int district_id PK
-        int province_id FK
-        string name
-    }
-    wards {
-        int ward_id PK
-        int district_id FK
-        string name
-    }
-    shippings {
-        int shipping_id PK
-        string type
-        decimal cost
-    }
-    categories {
-        int category_id PK
-        string name
-    }
-    products {
-        string code PK
-        int category_id FK
-        string name
-        string image
-        decimal price
-        int discount "them moi"
-        string status
-        string description
-        string detail
-        int views
-        int sold
-    }
-    users {
-        string email PK
-        string password "luu hash"
-        string name
-        string address
-        string mobile
-        date dob
-        string gender
-    }
-    administrators {
-        string username PK
-        string password "luu hash"
-        string name
-        string privilege
-    }
-    carts {
-        int cart_id PK
-        string user_email FK
-        datetime created_at
-    }
-    cart_items {
-        int cart_id PK
-        string product_code PK
-        int qty
-    }
-    orders {
-        string order_number PK
-        string user_email FK
-        int shipping_id FK
-        int ward_id FK
-        string receiver_name
-        string receiver_mobile
-        string receiver_address
-        datetime order_datetime
-        decimal total
-        string payment_type
-        string payment_status "them moi"
-        string status
-    }
-    order_details {
-        string order_number PK
-        string product_code PK
-        int qty
-        decimal price
-    }
-```
-
-### 4. Trạng thái đơn hàng
-
-```mermaid
-stateDiagram-v2
-    state "IN_TRANSIT" as InTransit
-    [*] --> NEW : Checkout thành công
-    NEW --> CONFIRMED : Admin xác nhận
-    CONFIRMED --> InTransit : Admin cập nhật
-    InTransit --> COMPLETED : Admin cập nhật
-    NEW --> CANCELED : Khách hủy (chỉ khi còn NEW)
-    COMPLETED --> [*]
-    CANCELED --> [*]
-```
-
-### 5. Quy trình Git
-
-```mermaid
-gitGraph
-    commit id: "init repo"
-    branch feature-menu
-    commit id: "TV1 menu"
-    checkout main
-    branch feature-cart-checkout
-    commit id: "TV2 cart + checkout"
-    checkout main
-    branch feature-account
-    commit id: "TV3 account"
-    checkout main
-    branch feature-orders
-    commit id: "TV4 orders"
-    checkout main
-    branch feature-users
-    commit id: "TV5 users"
-    checkout main
-    merge feature-account
-    merge feature-menu
-    merge feature-cart-checkout
-    merge feature-orders
-    merge feature-users
-    commit id: "test tích hợp" tag: "nộp bài"
-```
-
-## Cấu trúc thư mục
-
-```
-ProgAndTest_Group11/
-├── src/
-│   ├── presentation/        # trang, controller (customer/, admin/)
-│   ├── services/            # AccountService, MenuCartService, OrderService
-│   ├── repositories/        # UserRepository, MenuCartRepository, OrderRepository
-│   ├── models/              # User, Product, Category, Cart, Order, OrderDetail, ...
-│   └── common/              # kết nối CSDL, tính giá sau giảm, session
-├── tests/
-│   ├── unit/                # unit test
-│   └── Testing_Document.xlsx
-├── database/                # schema.sql, seed.sql
-├── docker/                  # Dockerfile
-├── docker-compose.yml
-├── docs/                    # đặc tả, quy ước, bảng phân công              
-│   ├── commits/
-│   ├── tool-usage/
-│   └── task-assignment/
-└── .github/                 # mẫu Pull Request và báo lỗi
-```
+Lưu ý: tài liệu đặc tả gốc có thể mô tả giao diện web/PHP; **không tự ý sửa hoặc xóa bản gốc**. Nếu thay đổi công nghệ làm lệch đặc tả, cần ghi nhận trong tài liệu thiết kế bổ sung và thống nhất với nhóm/giảng viên.
