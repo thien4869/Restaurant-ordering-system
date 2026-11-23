@@ -11,6 +11,7 @@
 #include "services/MenuService.h"
 #include "presentation/customer/menu/MenuScreen.h"
 #include "presentation/admin/dishes/DishManagementScreen.h"
+#endif
 namespace {
 
 std::string readSqlFile(const std::string& filename) {
