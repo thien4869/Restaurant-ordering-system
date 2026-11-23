@@ -44,3 +44,36 @@ target_link_libraries(tv3_orders_tests PRIVATE tv3_orders_lib)
 add_test(NAME orders_checks COMMAND tv3_orders_tests)
 
 message(STATUS "Independent TV3 C++ prototypes configured; no combined app yet")
+
+#TV5
+# Thu vien chua code cua TV5
+add_library(tv5_users_lib STATIC
+    src/repositories/UserRepository.cpp
+    src/services/UserAdminService.cpp
+)
+target_include_directories(tv5_users_lib PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+# Danh sach cac bai kiem thu TV5
+set(TV5_TESTS
+    test_users_list
+    test_users_update
+    test_users_delete
+    test_users_search
+    test_users_pagination
+    test_users_admin
+)
+# Tao chuong trinh va dang ky CTest cho tung bai
+foreach(TEST_NAME IN LISTS TV5_TESTS)
+    add_executable(${TEST_NAME}
+        "tests/unit/${TEST_NAME}.cpp"
+    )
+    target_link_libraries(${TEST_NAME} PRIVATE
+        tv5_users_lib
+    )
+    add_test(
+        NAME ${TEST_NAME}
+        COMMAND ${TEST_NAME}
+    )
+endforeach()
+
