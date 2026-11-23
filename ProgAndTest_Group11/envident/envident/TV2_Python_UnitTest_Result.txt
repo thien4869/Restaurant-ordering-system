@@ -1,5 +1,0 @@
-TV2 - Cart & Checkout
-Test run: python -m unittest discover -s tests/Unit -p test_*.py -v
-Result: Ran 11 tests in 0.001s - OK
-Date: 23/11/2026
-Notes: Python module standalone; C++ integration not verified.
