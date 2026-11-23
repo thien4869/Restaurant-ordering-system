@@ -96,3 +96,17 @@ foreach(TEST_NAME IN LISTS TV5_TESTS)
     )
 endforeach()
 
+
+# ==========================================
+# Integrated Restaurant Application - Phase 1
+# ==========================================
+add_executable(restaurant_app
+    src/main.cpp
+    src/services/AccountService.cpp
+)
+target_include_directories(restaurant_app PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+target_link_libraries(restaurant_app PRIVATE
+    tv5_users_lib
+)
