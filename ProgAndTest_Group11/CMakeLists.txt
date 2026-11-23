@@ -44,3 +44,28 @@ target_link_libraries(tv3_orders_tests PRIVATE tv3_orders_lib)
 add_test(NAME orders_checks COMMAND tv3_orders_tests)
 
 message(STATUS "Independent TV3 C++ prototypes configured; no combined app yet")
+
+# TV4 - Orders Module
+add_library(tv4_orders_lib STATIC
+    src/repositories/OrderRepository.cpp
+    src/services/OrderService.cpp
+)
+
+target_include_directories(tv4_orders_lib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# TV4 - Orders Unit Tests
+add_executable(tv4_orders_tests
+    tests/test_orders.cpp
+)
+
+target_link_libraries(tv4_orders_tests PRIVATE
+    tv4_orders_lib
+)
+
+add_test(
+    NAME tv4_orders_checks
+    COMMAND tv4_orders_tests
+)
+
