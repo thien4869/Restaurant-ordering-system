@@ -134,3 +134,59 @@ if(Python3_Interpreter_FOUND)
 else()
     message(WARNING "Python3 not found - TV2 tests disabled")
 endif()
+
+# ==========================================
+# TV1 - Menu integration
+# ==========================================
+set(TV1_ARCHIVE
+    "${CMAKE_CURRENT_SOURCE_DIR}/submissions/TV1_Menu_Submission.zip"
+)
+set(TV1_EXTRACT
+    "${CMAKE_CURRENT_BINARY_DIR}/extracted/tv1"
+)
+file(MAKE_DIRECTORY "${TV1_EXTRACT}")
+file(ARCHIVE_EXTRACT
+    INPUT "${TV1_ARCHIVE}"
+    DESTINATION "${TV1_EXTRACT}"
+)
+set(TV1_DIR "${TV1_EXTRACT}/TV1_Menu_Submission")
+# Build TV1 core without its independent demo/tests
+set(TV1_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(TV1_BUILD_CONSOLE_DEMO OFF CACHE BOOL "" FORCE)
+set(TV1_WITH_MYSQL OFF CACHE BOOL "" FORCE)
+add_subdirectory(
+    "${TV1_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/tv1_module"
+)
+find_package(SQLite3 REQUIRED)
+add_library(tv1_sqlite_adapter STATIC
+    "${TV1_DIR}/src/common/database/SqliteDatabase.cpp"
+)
+
+target_include_directories(tv1_sqlite_adapter PUBLIC
+    "${TV1_DIR}/src"
+)
+target_link_libraries(tv1_sqlite_adapter PUBLIC
+    tv1_menu_core
+    SQLite3::SQLite3
+)
+# Compile TV1 screens with the real TV3 Auth
+add_library(tv1_app_bridge STATIC
+    src/integration/Tv1MenuBridge.cpp
+    "${TV1_DIR}/src/presentation/customer/menu/MenuScreen.cpp"
+    "${TV1_DIR}/src/presentation/admin/dishes/DishManagementScreen.cpp"
+)
+target_include_directories(tv1_app_bridge PRIVATE
+    "${TV1_DIR}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/models"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+target_compile_definitions(tv1_app_bridge PRIVATE
+    TV1_SOURCE_DIR="${TV1_DIR}"
+)
+target_link_libraries(tv1_app_bridge PUBLIC
+    tv1_sqlite_adapter
+)
+target_link_libraries(restaurant_app PRIVATE
+    tv1_app_bridge
+)
