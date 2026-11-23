@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đặt món & Thanh toán</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background: #f8f9fa; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 24px; border-radius: 8px; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-weight: bold; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    .error { color: #c0392b; background: #fadbd8; padding: 10px; border-radius: 4px; margin-bottom: 14px; }
+    .btn-submit { background: #27ae60; color: #fff; padding: 10px 18px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Thông Tin Đặt Món (Checkout)</h2>
+  {% if error %}
+  <div class="error">{{ error }}</div>
+  {% endif %}
+  <form method="post" action="/checkout">
+    <div class="form-group">
+      <label>Họ tên người nhận *</label>
+      <input type="text" name="recipient_name" required>
+    </div>
+    <div class="form-group">
+      <label>Số điện thoại *</label>
+      <input type="text" name="phone" placeholder="0901234567" required>
+    </div>
+    <div class="form-group">
+      <label>Kiểu giao hàng *</label>
+      <select name="delivery_type">
+        <option value="STANDARD">Giao tiêu chuẩn (STANDARD)</option>
+        <option value="EXPRESS">Giao hỏa tốc (EXPRESS)</option>
+        <option value="PICKUP">Nhận tại quán (PICKUP)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Tỉnh / Thành phố *</label>
+      <select name="province">
+        <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+        <option value="Hà Nội">Hà Nội</option>
+        <option value="Đà Nẵng">Đà Nẵng</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Quận / Huyện *</label>
+      <input type="text" name="district" placeholder="VD: Quận 1" required>
+    </div>
+    <div class="form-group">
+      <label>Phường / Xã *</label>
+      <input type="text" name="ward" placeholder="VD: Phường Bến Nghé" required>
+    </div>
+    <div class="form-group">
+      <label>Địa chỉ cụ thể *</label>
+      <input type="text" name="street_address" placeholder="Số nhà, tên đường..." required>
+    </div>
+    <div class="form-group">
+      <label>Phương thức thanh toán *</label>
+      <select name="payment_method">
+        <option value="CASH">Tiền mặt khi nhận hàng (CASH)</option>
+        <option value="ONLINE">Thanh toán Online giả lập (ONLINE)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Ghi chú đơn hàng</label>
+      <textarea name="note" rows="2"></textarea>
+    </div>
+    <p>Tạm tính giỏ hàng: <strong>{{ "{:,.0f}".format(cart.total_amount) }} đ</strong> (Tổng tiền cuối cùng sẽ được tính lại ở server)</p>
+    <button type="submit" class="btn-submit">Xác nhận đặt đơn</button>
+  </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Giỏ hàng của bạn</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background: #f8f9fa; }
+    .container { max-width: 900px; margin: auto; background: #fff; padding: 24px; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+    th { background: #2c3e50; color: #fff; }
+    .summary { text-align: right; margin-top: 16px; font-size: 18px; }
+    .btn { padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+    .btn-primary { background: #e67e22; color: #fff; }
+    .btn-danger { background: #e74c3c; color: #fff; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Giỏ Hàng ({{ "Khách vãng lai (Session)" if cart.is_guest else "Thành viên" }})</h2>
+  {% if cart.items %}
+  <table>
+    <thead>
+      <tr>
+        <th>Món ăn</th>
+        <th>Đơn giá gốc</th>
+        <th>Giảm (%)</th>
+        <th>Giá sau giảm</th>
+        <th>Số lượng</th>
+        <th>Thành tiền</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in cart.items %}
+      <tr>
+        <td>{{ item.product_name }}</td>
+        <td>{{ "{:,.0f}".format(item.unit_price) }} đ</td>
+        <td>{{ item.discount_percent }}%</td>
+        <td>{{ "{:,.0f}".format(item.discounted_unit_price) }} đ</td>
+        <td>
+          <form method="post" action="/cart/update">
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="99" style="width:60px;">
+            <button type="submit" class="btn">Cập nhật</button>
+          </form>
+        </td>
+        <td>{{ "{:,.0f}".format(item.subtotal) }} đ</td>
+        <td>
+          <form method="post" action="/cart/remove">
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <button type="submit" class="btn btn-danger">Xóa</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="summary">
+    <p>Tổng số lượng: <strong>{{ cart.total_quantity }}</strong></p>
+    <p>Tạm tính: <strong>{{ "{:,.0f}".format(cart.total_amount) }} đ</strong></p>
+    <a href="/checkout" class="btn btn-primary">Tiến hành Đặt món (Checkout)</a>
+  </div>
+  {% else %}
+  <p>Giỏ hàng của bạn đang trống.</p>
+  {% endif %}
+</div>
+</body>
+</html>

@@ -110,3 +110,22 @@ target_include_directories(restaurant_app PRIVATE
 target_link_libraries(restaurant_app PRIVATE
     tv5_users_lib
 )
+
+# ==========================================
+# TV2 - Cart and Checkout Python Tests
+# ==========================================
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(
+        NAME tv2_cart_checkout_checks
+        COMMAND "${Python3_EXECUTABLE}"
+            -m unittest discover
+            -s tests/Unit
+            -p test_*.py
+            -v
+        WORKING_DIRECTORY
+            "${CMAKE_CURRENT_SOURCE_DIR}/submissions/tv2/source"
+    )
+else()
+    message(WARNING "Python3 not found - TV2 tests disabled")
+endif()

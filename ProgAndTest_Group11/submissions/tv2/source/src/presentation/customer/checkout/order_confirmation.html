@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác nhận đơn hàng</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background: #f8f9fa; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 24px; border-radius: 8px; }
+    .badge { padding: 4px 10px; border-radius: 12px; background: #2ecc71; color: #fff; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Đặt Hàng Thành Công!</h2>
+  <p>Mã đơn hàng: <strong>{{ order.order_id }}</strong> | Trạng thái đơn: <span class="badge">{{ order.status.value }}</span></p>
+  <p>Người nhận: <strong>{{ order.recipient_name }}</strong> - {{ order.phone }}</p>
+  <p>Địa chỉ giao: {{ order.full_address }} ({{ order.delivery_type }})</p>
+  <p>Thanh toán: <strong>{{ order.payment_method.value }}</strong> - Trạng thái thanh toán: <strong>{{ order.payment_status.value }}</strong>
+    {% if order.transaction_id %}(Mã GD: {{ order.transaction_id }}){% endif %}
+  </p>
+  <table>
+    <thead>
+      <tr><th>Món</th><th>Đơn giá sau giảm</th><th>SL</th><th>Thành tiền</th></tr>
+    </thead>
+    <tbody>
+      {% for item in order.items %}
+      <tr>
+        <td>{{ item.product_name }}</td>
+        <td>{{ "{:,.0f}".format(item.final_unit_price) }} đ</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ "{:,.0f}".format(item.line_total) }} đ</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>Tạm tính: {{ "{:,.0f}".format(order.subtotal) }} đ</p>
+  <p>Phí giao hàng: {{ "{:,.0f}".format(order.shipping_fee) }} đ</p>
+  <h3>Tổng thanh toán: {{ "{:,.0f}".format(order.total_amount) }} đ</h3>
+</div>
+</body>
+</html>
