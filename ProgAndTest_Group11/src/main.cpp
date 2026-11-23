@@ -1,76 +1,175 @@
 #include <iostream>
 #include <string>
+#include <functional>
+#include <sstream>
 #include "services/AccountService.h"
+#include "services/OrderService.h"
 using namespace std;
 
-void showCustomerMenu(AccountService& service, Auth& auth) {
-    while (auth.isLoggedIn()) {
+void showOrderHistory(OrderService &, const string &);
+void showOrderDetails(OrderService &, const string &, const string &);
+void cancelCustomerOrder(OrderService &, const string &, const string &);
+void showAllOrders(OrderService &);
+void updateAdminOrderStatus(OrderService &, const string &, const string &);
+void createDemoAdmin(UserRepository &repo)
+{
+    User admin;
+    admin.name = "Demo Administrator";
+    admin.email = "admin@demo.com";
+    admin.phone = "0900000000";
+    admin.role = "admin";
+    ostringstream hash;
+    hash << hex << std::hash<string>{}("Admin12345");
+    admin.passwordHash = hash.str();
+    repo.add(admin);
+}
+void customerMenu(
+    AccountService &accountService,
+    OrderService &orderService,
+    OrderRepository &orderRepo,
+    Auth &auth,
+    int &orderCounter)
+{
+    while (auth.isLoggedIn())
+    {
         cout << "\n========== CUSTOMER MENU ==========\n";
         cout << "Welcome, " << auth.user()->name << "\n";
         cout << "1. View profile\n";
         cout << "2. Update profile\n";
-        cout << "3. Logout\n";
+        cout << "3. View order history\n";
+        cout << "4. View order details\n";
+        cout << "5. Cancel order\n";
+        cout << "6. Create demo order (testing)\n";
+        cout << "7. Logout\n";
         cout << "===================================\n";
         cout << "Choose: ";
         string choice;
-        getline(cin, choice);
-        if (choice == "1") {
-            cout << "\nName: " << auth.user()->name << "\n";
-            cout << "Email: " << auth.user()->email << "\n";
+        if (!getline(cin, choice))
+            return;
+        const string email = auth.user()->email;
+        if (choice == "1")
+        {
+            cout << "Name: " << auth.user()->name << "\n";
+            cout << "Email: " << email << "\n";
             cout << "Phone: " << auth.user()->phone << "\n";
         }
-        else if (choice == "2") {
+        else if (choice == "2")
+        {
             string name, phone, error;
             cout << "New name: ";
             getline(cin, name);
             cout << "New phone: ";
             getline(cin, phone);
-            if (service.updateProfile(auth, name, phone, error)) {
+            if (accountService.updateProfile(auth, name, phone, error))
                 cout << "Profile updated successfully!\n";
-            } else {
+            else
                 cout << "Error: " << error << "\n";
-            }
         }
-        else if (choice == "3") {
+        else if (choice == "3")
+        {
+            showOrderHistory(orderService, email);
+        }
+        else if (choice == "4")
+        {
+            string orderNumber;
+            cout << "Enter order number: ";
+            getline(cin, orderNumber);
+            showOrderDetails(orderService, orderNumber, email);
+        }
+        else if (choice == "5")
+        {
+            string orderNumber;
+            cout << "Enter order number to cancel: ";
+            getline(cin, orderNumber);
+            cancelCustomerOrder(orderService, orderNumber, email);
+        }
+        else if (choice == "6")
+        {
+            string orderNumber = "ORD" + to_string(orderCounter++);
+            Order demoOrder(
+                orderNumber,
+                email,
+                "2026-11-23",
+                "NEW",
+                "CASH",
+                "UNPAID",
+                150000);
+            orderRepo.addOrder(demoOrder);
+            cout << "Demo order created!\n";
+            cout << "Order number: " << orderNumber << "\n";
+            cout << "Total: 150000 VND\n";
+        }
+        else if (choice == "7")
+        {
             auth.logout();
             cout << "Logged out successfully!\n";
         }
-        else {
+        else
+        {
             cout << "Invalid choice!\n";
         }
     }
 }
-void showAdminMenu(Auth& auth) {
-    if (!auth.canAccessAdmin()) {
+void adminMenu(OrderService &orderService, Auth &auth)
+{
+    if (!auth.canAccessAdmin())
+    {
         cout << "Access denied!\n";
         return;
     }
-    while (auth.isLoggedIn()) {
+    while (auth.isLoggedIn())
+    {
         cout << "\n============ ADMIN MENU ============\n";
-        cout << "1. View account information\n";
-        cout << "2. Logout\n";
+        cout << "1. View admin information\n";
+        cout << "2. View all orders\n";
+        cout << "3. Update order status\n";
+        cout << "4. Logout\n";
         cout << "====================================\n";
         cout << "Choose: ";
         string choice;
-        getline(cin, choice);
-        if (choice == "1") {
-            cout << "Admin: " << auth.user()->name << "\n";
+        if (!getline(cin, choice))
+            return;
+        if (choice == "1")
+        {
+            cout << "Name: " << auth.user()->name << "\n";
             cout << "Email: " << auth.user()->email << "\n";
         }
-        else if (choice == "2") {
+        else if (choice == "2")
+        {
+            showAllOrders(orderService);
+        }
+        else if (choice == "3")
+        {
+            string number, status;
+            cout << "Order number: ";
+            getline(cin, number);
+            cout << "New status (NEW / CONFIRMED / "
+                 << "IN_TRANSIT / COMPLETED / CANCELED): ";
+            getline(cin, status);
+            updateAdminOrderStatus(orderService, number, status);
+        }
+        else if (choice == "4")
+        {
             auth.logout();
             cout << "Admin logged out!\n";
         }
-        else {
+        else
+        {
             cout << "Invalid choice!\n";
         }
     }
 }
-int main() {
+int main()
+{
     UserRepository userRepo;
     AccountService accountService(userRepo);
+    OrderRepository orderRepo;
+    OrderService orderService(orderRepo);
     Auth auth;
-    while (true) {
+    int orderCounter = 1;
+    createDemoAdmin(userRepo);
+    while (true)
+    {
         cout << "\n====================================\n";
         cout << "       RESTAURANT ORDERING SYSTEM\n";
         cout << "====================================\n";
@@ -81,11 +180,10 @@ int main() {
         cout << "====================================\n";
         cout << "Choose: ";
         string choice;
-        getline(cin, choice);
-        if (!cin) {
+        if (!getline(cin, choice))
             break;
-        }
-        if (choice == "1") {
+        if (choice == "1")
+        {
             string name, email, password, confirm, phone, error;
             cout << "\n=== REGISTER CUSTOMER ===\n";
             cout << "Full name: ";
@@ -96,50 +194,55 @@ int main() {
             getline(cin, password);
             cout << "Confirm password: ";
             getline(cin, confirm);
-            cout << "Phone number: ";
+            cout << "Phone: ";
             getline(cin, phone);
-            bool success = accountService.registerUser(
-                name, email, password, confirm, phone, error
-            );
-            if (success) {
+            if (accountService.registerUser(
+                    name, email, password, confirm, phone, error))
+            {
                 cout << "Registration successful!\n";
-            } else {
+            }
+            else
+            {
                 cout << "Registration failed: " << error << "\n";
             }
         }
-        else if (choice == "2") {
+        else if (choice == "2" || choice == "3")
+        {
             string email, password, error;
-            cout << "\n=== CUSTOMER LOGIN ===\n";
             cout << "Email: ";
             getline(cin, email);
             cout << "Password: ";
             getline(cin, password);
-            if (accountService.login(email, password, auth, error)) {
-                cout << "Login successful!\n";
-                showCustomerMenu(accountService, auth);
-            } else {
+            bool success = choice == "2"
+                               ? accountService.login(email, password, auth, error)
+                               : accountService.adminLogin(email, password, auth, error);
+            if (!success)
+            {
                 cout << "Login failed: " << error << "\n";
+                continue;
+            }
+            cout << "Login successful!\n";
+            if (auth.canAccessAdmin())
+            {
+                adminMenu(orderService, auth);
+            }
+            else
+            {
+                customerMenu(
+                    accountService,
+                    orderService,
+                    orderRepo,
+                    auth,
+                    orderCounter);
             }
         }
-        else if (choice == "3") {
-            string email, password, error;
-            cout << "\n=== ADMIN LOGIN ===\n";
-            cout << "Email: ";
-            getline(cin, email);
-            cout << "Password: ";
-            getline(cin, password);
-            if (accountService.adminLogin(email, password, auth, error)) {
-                cout << "Admin login successful!\n";
-                showAdminMenu(auth);
-            } else {
-                cout << "Login failed: " << error << "\n";
-            }
-        }
-        else if (choice == "0") {
+        else if (choice == "0")
+        {
             cout << "Goodbye!\n";
             break;
         }
-        else {
+        else
+        {
             cout << "Invalid choice!\n";
         }
     }
